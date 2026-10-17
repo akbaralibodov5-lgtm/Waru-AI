@@ -146,3 +146,8 @@ The bot will use Telegram's copy-message feature to send the original channel po
 ## License
 
 No license has been selected yet. Add one after deciding how this project may be reused.
+
+
+## 6. Scheduled donation support message
+
+The bot posts an Uzbek-language project support message with the UZS donation link `https://taps.uz/generalsmobile1` to `@generalstelefon` every five hours after startup. These scheduled posts use `send_message` directly and are not included in the 25-second temporary-reply deletion flow. The bot must be a member of the group and have permission to send messages. To change the destination, set the Railway variable `DONATION_CHAT_ID` to the group username (for example, `@generalstelefon`) or numeric chat ID.
