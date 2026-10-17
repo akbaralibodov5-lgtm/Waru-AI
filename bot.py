@@ -86,7 +86,7 @@ DONATION_TEXT = (
     "sinov va texnik xarajatlarni qo‘llab-quvvatlashga yo‘naltiriladi.\n\n"
     "👇 O‘zbek so‘mida (UZS) yordam berish uchun havola:\n"
     "https://taps.uz/generalsmobile1\n\n"
-    "🙏 Qo‘llab-quvvatlaganingiz, loyihani ulashganingiz va fikr-mulohaza "
+    "Qo‘llab-quvvatlaganingiz, loyihani ulashganingiz va fikr-mulohaza "
     "bildirganingiz uchun katta rahmat!\n\n"
     "Waru Edition — hamjamiyat bilan birga rivojlanadi. 🔥"
 )
