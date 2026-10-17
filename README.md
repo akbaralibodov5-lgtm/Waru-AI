@@ -9,6 +9,8 @@ Telegram AI assistant for Waru Edition and Command & Conquer: Generals / Zero Ho
 - `/latest` shows configured release information and will not invent URLs.
 - `/files` lists configured downloads and Telegram channel posts.
 - `/tutorials` lists tutorial video links.
+- `/analyze` (admin only) explains how to analyze older posts by forwarding their media to the bot.
+- New channel media posts are indexed with metadata-based AI notes; APK/ZIP inspection is limited by Telegram download size.
 - Admin commands to update release metadata and community links.
 - GitHub Actions checks Python syntax and the JSON catalog.
 
@@ -83,7 +85,7 @@ Example:
 }
 ```
 
-Replace every example URL with a real, authorized link. Placeholder URLs do not work. Private Telegram channel posts may require the bot to be a member or a valid invite link. This bot currently opens links; it does not scrape a channel or copy a file from a channel automatically.
+Replace every example URL with a real, authorized link. Placeholder URLs do not work. Private Telegram channel posts may require the bot to be a member or a valid invite link. The bot indexes new supported channel media posts and attempts a metadata-based AI analysis. Telegram Bot API cannot fetch arbitrary historical channel posts on demand, so admins should forward old media posts to the bot for analysis. Video content itself is not fully transcribed or visually analyzed by this implementation.
 
 ## 4. Admin commands
 
