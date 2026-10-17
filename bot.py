@@ -227,6 +227,25 @@ async def setversion(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.effective_message.reply_text("✅ Versiya ma'lumoti yangilandi.")
 
 
+
+async def setpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.effective_message.reply_text("Faqat admin.")
+        return
+    url = context.args[0].strip() if context.args else ""
+    if not url.startswith(("https://t.me/", "https://telegram.me/")):
+        await update.effective_message.reply_text("Foydalanish: /setpost https://t.me/kanal/123")
+        return
+    catalog = load_catalog()
+    catalog["version"]["telegram_post_url"] = url
+    try:
+        CATALOG_PATH.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        log.exception("Catalog yozilmadi")
+        await update.effective_message.reply_text("Saqlanmadi: server fayl yozish huquqini tekshiring.")
+        return
+    await update.effective_message.reply_text("✅ Versiya uchun Telegram post havolasi saqlandi.")
+
 async def set_link(update: Update, context: ContextTypes.DEFAULT_TYPE, key: str, label: str):
     if not is_admin(update.effective_user.id):
         await update.effective_message.reply_text("Faqat admin.")
@@ -300,6 +319,7 @@ def main():
     app.add_handler(CommandHandler("reset", reset_command))
     app.add_handler(CommandHandler("adminhelp", adminhelp))
     app.add_handler(CommandHandler("setversion", setversion))
+    app.add_handler(CommandHandler("setpost", setpost))
     app.add_handler(CommandHandler("setchannel", setchannel))
     app.add_handler(CommandHandler("setgroup", setgroup))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, answer_message))
