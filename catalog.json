@@ -1,0 +1,27 @@
+{
+  "version": {
+    "name": "Waru Edition",
+    "latest_version": "Not configured",
+    "release_notes": "Admin hali versiya ma'lumotlarini sozlamagan.",
+    "download_url": "",
+    "telegram_post_url": "",
+    "updated_at": ""
+  },
+  "files": [
+    {
+      "name": "Waru Edition APK",
+      "description": "Haqiqiy fayl havolasini admin qo'shadi.",
+      "url": "",
+      "telegram_post_url": ""
+    }
+  ],
+  "tutorials": [
+    {
+      "title": "Waru Edition o'rnatish qo'llanmasi",
+      "description": "Tutorial video havolasini admin qo'shadi.",
+      "url": ""
+    }
+  ],
+  "support_channel": "",
+  "support_group": ""
+}
