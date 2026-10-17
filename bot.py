@@ -35,6 +35,7 @@ ADMIN_IDS = {
 CATALOG_PATH = Path(os.getenv("CATALOG_PATH", "catalog.json"))
 DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or "@generalstelefon"
 DONATION_URL = "https://taps.uz/generalsmobile1"
+INTERNATIONAL_DONATION_URL = "https://dalink.to/waru_edition"
 CLICK_QR_URL = "https://indoor.click.uz/pay?id=0113851&t=0"
 DONATION_INTERVAL_SECONDS = 2 * 60 * 60 + 30 * 60
 
@@ -87,8 +88,9 @@ DONATION_TEXT = (
     "uchun to‘lov talab qilinmaydi.\n\n"
     "🔹 Mablag‘lar loyiha rivoji, dastur yangilanishlari, xatolarni tuzatish, "
     "sinov va texnik xarajatlarni qo‘llab-quvvatlashga yo‘naltiriladi.\n\n"
-    "👇 O‘zbek so‘mida (UZS) yordam berish uchun havola:\n"
-    "https://taps.uz/generalsmobile1\n\n"
+    "🇺🇿 O‘zbek so‘mida (UZS) donat: https://taps.uz/generalsmobile1\n"
+    "🌍 Xalqaro donat (RUB, USD, EUR, TRY, KZT va boshqa mavjud valyutalar):\n"
+    "https://dalink.to/waru_edition\n\n"
     "Qo‘llab-quvvatlaganingiz, loyihani ulashganingiz va fikr-mulohaza "
     "bildirganingiz uchun katta rahmat!\n\n"
     "Waru Edition — hamjamiyat bilan birga rivojlanadi. 🔥"
@@ -111,10 +113,13 @@ async def send_donation_message(bot, chat_id):
         chat_id=chat_id,
         photo=make_click_qr(),
         caption=DONATION_TEXT,
-        reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("❤️ Click orqali to‘lash", url=CLICK_QR_URL),
-            InlineKeyboardButton("UZS donat sahifasi", url=DONATION_URL)
-        ]]),
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🇺🇿 Click orqali UZS", url=CLICK_QR_URL),
+                InlineKeyboardButton("💳 UZS donat sahifasi", url=DONATION_URL)
+            ],
+            [InlineKeyboardButton("🌍 Xalqaro donat (RUB / USD / EUR / TRY / KZT)", url=INTERNATIONAL_DONATION_URL)],
+        ]),
     )
 
 
