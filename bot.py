@@ -31,6 +31,9 @@ ADMIN_IDS = {
     if value.strip().isdigit()
 }
 CATALOG_PATH = Path(os.getenv("CATALOG_PATH", "catalog.json"))
+DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or "@generalstelefon"
+DONATION_URL = "https://taps.uz/generalsmobile1"
+DONATION_INTERVAL_SECONDS = 5 * 60 * 60
 
 if not TELEGRAM_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN .env faylida ko'rsatilmagan.")
@@ -67,6 +70,49 @@ DEFAULT_CATALOG = {
     "support_channel": "",
     "support_group": ""
 }
+
+
+DONATION_TEXT = (
+    "❤️ WARU EDITION LOYIHASINI QO‘LLAB-QUVVATLANG!\n\n"
+    "Assalomu alaykum, Generals Zero Hour muxlislari! 🎮\n\n"
+    "Waru Edition va Android uchun Generals loyihasini rivojlantirish, "
+    "yangi imkoniyatlar qo‘shish, mavjud xatolarni tuzatish, modlar bilan "
+    "moslikni yaxshilash, yangilanishlarni tayyorlash va server/hosting "
+    "xarajatlarini qoplash uchun sizning yordamingiz muhim.\n\n"
+    "💙 Har qanday ixtiyoriy hissa loyihaning keyingi bosqichlariga yordam beradi. "
+    "Donat qilish majburiy emas — loyihadan foydalanish va hamjamiyatda qatnashish "
+    "uchun to‘lov talab qilinmaydi.\n\n"
+    "🔹 Mablag‘lar loyiha rivoji, dastur yangilanishlari, xatolarni tuzatish, "
+    "sinov va texnik xarajatlarni qo‘llab-quvvatlashga yo‘naltiriladi.\n\n"
+    "👇 O‘zbek so‘mida (UZS) yordam berish uchun havola:\n"
+    "https://taps.uz/generalsmobile1\n\n"
+    "🙏 Qo‘llab-quvvatlaganingiz, loyihani ulashganingiz va fikr-mulohaza "
+    "bildirganingiz uchun katta rahmat!\n\n"
+    "Waru Edition — hamjamiyat bilan birga rivojlanadi. 🔥"
+)
+
+
+async def donation_loop(application: Application):
+    """Post a persistent donation message to the configured group every five hours."""
+    while True:
+        await asyncio.sleep(DONATION_INTERVAL_SECONDS)
+        try:
+            await application.bot.send_message(
+                chat_id=DONATION_CHAT_ID,
+                text=DONATION_TEXT,
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
+                ]]),
+                disable_web_page_preview=True,
+            )
+            log.info("Scheduled donation message posted to %s", DONATION_CHAT_ID)
+        except Exception:
+            log.exception("Scheduled donation message failed for %s", DONATION_CHAT_ID)
+
+
+async def post_init(application: Application):
+    # Use a dedicated send_message task, not temporary_reply, so this post is never auto-deleted.
+    application.create_task(donation_loop(application), name="waru-donation-loop")
 
 
 async def delete_message_after_delay(sent_message, delay: int = 25):
@@ -556,7 +602,7 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    app = Application.builder().token(TELEGRAM_TOKEN).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("latest", latest))
