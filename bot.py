@@ -93,15 +93,31 @@ DONATION_TEXT = (
 )
 
 
-async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show a persistent donation message when a user explicitly requests it."""
-    await update.effective_message.reply_text(
-        DONATION_TEXT,
+async def send_donation_message(bot, chat_id):
+    """Send a persistent donation message with the Click QR image."""
+    await bot.send_photo(
+        chat_id=chat_id,
+        photo=Path(os.getenv("DONATION_QR_PATH", "assets/click-pay-qr.jpg")),
+        caption=DONATION_TEXT,
         reply_markup=InlineKeyboardMarkup([[
             InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
         ]]),
-        disable_web_page_preview=True,
     )
+
+
+async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show a persistent donation message with QR when requested."""
+    try:
+        await send_donation_message(context.bot, update.effective_chat.id)
+    except Exception:
+        log.exception("Donation QR could not be sent")
+        await update.effective_message.reply_text(
+            DONATION_TEXT,
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
+            ]]),
+            disable_web_page_preview=True,
+        )
 
 
 async def donation_loop(application: Application):
@@ -114,14 +130,7 @@ async def donation_loop(application: Application):
             log.info("Skipping scheduled donation during quiet hours in Tashkent: %s", local_now.isoformat())
             continue
         try:
-            await application.bot.send_message(
-                chat_id=DONATION_CHAT_ID,
-                text=DONATION_TEXT,
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
-                ]]),
-                disable_web_page_preview=True,
-            )
+            await send_donation_message(application.bot, DONATION_CHAT_ID)
             log.info("Scheduled donation message posted to %s", DONATION_CHAT_ID)
         except Exception:
             log.exception("Scheduled donation message failed for %s", DONATION_CHAT_ID)
