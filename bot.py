@@ -140,6 +140,20 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not version.get("download_url") and not version.get("telegram_post_url"):
         lines.extend(["", "⚠️ Yuklab olish havolasi sozlanmagan. Admin catalog.json faylini to'ldirishi kerak."])
     await update.effective_message.reply_text("\n".join(lines), reply_markup=catalog_keyboard())
+    source_chat = version.get("source_chat_id")
+    source_message = version.get("source_message_id")
+    if source_chat and str(source_message).isdigit() and int(source_message) > 0:
+        try:
+            await context.bot.copy_message(
+                chat_id=update.effective_chat.id,
+                from_chat_id=source_chat,
+                message_id=int(source_message),
+            )
+        except Exception:
+            log.exception("Latest release channel post could not be copied")
+            await update.effective_message.reply_text(
+                "Kanal postidan fayl yuborilmadi. Bot kanalga qo'shilganini va source_chat_id/source_message_id to'g'ri ekanini tekshiring."
+            )
 
 
 async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -161,6 +175,20 @@ async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             label = "⬇️ Faylni olish" if target == url else "📣 Kanal postini ochish"
             markup = InlineKeyboardMarkup([[InlineKeyboardButton(label, url=target)]])
         await update.effective_message.reply_text(text, reply_markup=markup)
+        source_chat = item.get("source_chat_id")
+        source_message = item.get("source_message_id")
+        if source_chat and str(source_message).isdigit() and int(source_message) > 0:
+            try:
+                await context.bot.copy_message(
+                    chat_id=update.effective_chat.id,
+                    from_chat_id=source_chat,
+                    message_id=int(source_message),
+                )
+            except Exception:
+                log.exception("Catalog file post could not be copied")
+                await update.effective_message.reply_text(
+                    "Bu fayl kanalidan avtomatik yuborilmadi. Bot a'zoligi va fayl manzili sozlamalarini tekshiring."
+                )
 
 
 async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -179,6 +207,20 @@ async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if url.startswith(("https://", "http://")):
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("▶️ Videoni ko'rish", url=url)]])
         await update.effective_message.reply_text(text, reply_markup=markup)
+        source_chat = item.get("source_chat_id")
+        source_message = item.get("source_message_id")
+        if source_chat and str(source_message).isdigit() and int(source_message) > 0:
+            try:
+                await context.bot.copy_message(
+                    chat_id=update.effective_chat.id,
+                    from_chat_id=source_chat,
+                    message_id=int(source_message),
+                )
+            except Exception:
+                log.exception("Tutorial channel post could not be copied")
+                await update.effective_message.reply_text(
+                    "Videoni kanaldan yuborib bo'lmadi. Bot kanal a'zoligi va source ma'lumotlarini tekshiring."
+                )
 
 
 async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
