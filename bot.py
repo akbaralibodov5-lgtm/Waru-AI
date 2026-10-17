@@ -407,42 +407,47 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     query = question.casefold()
-    # Requests for Generals APK should return both download posts and the tutorial.
-    if any(term in query for term in (
+    # Respond only to clear requests about Generals downloads/tutorials or explicit bot help.
+    download_terms = (
         "generals apk", "generals zero hour apk", "apk va zip", "apk zip",
         "apkni ber", "apk ber", "generals fayl", "zero hour apk",
-        "generalsni yuklab", "o'yinni yuklab"
-    )):
-        await files_command(update, context)
-        await tutorials_command(update, context)
-        return
+        "generalsni yuklab", "o'yinni yuklab", "oyin apk", "o'yin apk",
+        "generals mod", "generals zip", "zero hour zip", "generals zero hour"
+    )
+    file_terms = (
+        "faylni ber", "fayllarni ber", "yuklab olish", "download file",
+        "скачать файл", "файлни", "apk", "zip fayl", "zipni ber"
+    )
+    tutorial_terms = (
+        "tutorial video", "tutorial vide", "video qo'llanma", "видео урок",
+        "видео-урок", "o'rnatish videosi", "ustanovka video"
+    )
+    version_terms = (
+        "eng oxirgi versiya", "oxirgi versiya", "latest version",
+        "последняя версия", "последнюю версию"
+    )
+    help_terms = ("/help", "yordam buyruqlari", "nima qila olasan", "bot yordam")
 
-    if any(term in query for term in ("eng oxirgi versiya", "oxirgi versiya", "latest version", "последняя версия", "последнюю версию")):
+    if any(term in query for term in version_terms):
         await latest(update, context)
         return
-    if any(term in query for term in ("tutorial video", "tutorial vide", "video qo'llanma", "видео урок", "видео-урок")):
+    if any(term in query for term in tutorial_terms):
         await tutorials_command(update, context)
         return
-    if any(term in query for term in ("faylni ber", "fayllarni ber", "yuklab olish", "download file", "скачать файл", "файлни")):
+    if any(term in query for term in file_terms) or any(term in query for term in download_terms):
         await files_command(update, context)
+        await tutorials_command(update, context)
+        return
+    if any(term in query for term in help_terms):
+        await help_command(update, context)
         return
 
-    user_history = history[user.id]
-    user_history.append({"role": "user", "content": question})
-    try:
-        await context.bot.send_chat_action(chat_id=message.chat_id, action=ChatAction.TYPING)
-        response = await ai.responses.create(
-            model=MODEL, instructions=SYSTEM_PROMPT, input=list(user_history), max_output_tokens=1200
-        )
-        answer = (response.output_text or "").strip() or "Javob olinmadi. Qayta urinib ko'ring."
-        user_history.append({"role": "assistant", "content": answer})
-        for offset in range(0, len(answer), 3900):
-            await temporary_reply(message, answer[offset:offset + 3900])
-    except Exception:
-        log.exception("OpenAI so'rovi bajarilmadi")
-        if user_history and user_history[-1]["role"] == "user":
-            user_history.pop()
-        await temporary_reply(message, "⚠️ AI javob bera olmadi. API kaliti, billing, model va internetni tekshiring.")
+    # Ignore ordinary conversation so the bot stays quiet in group chats.
+    if message.chat.type in ("group", "supergroup"):
+        return
+
+    # In private chat, also ignore ordinary conversation; commands still work.
+    return
 
 
 def main():
