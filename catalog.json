@@ -1,33 +1,16 @@
 {
   "version": {
     "name": "Waru Edition",
-    "latest_version": "Not configured",
-    "release_notes": "Admin hali versiya ma'lumotlarini sozlamagan.",
+    "latest_version": "Hali sozlanmagan",
+    "release_notes": "Yangi versiya postini kanalga joylang; bot kanalga ulangan bo'lsa uni indekslaydi.",
     "download_url": "",
     "telegram_post_url": "",
     "updated_at": "",
     "source_chat_id": "",
     "source_message_id": 0
   },
-  "files": [
-    {
-      "name": "Waru Edition APK",
-      "description": "Haqiqiy fayl havolasini admin qo'shadi.",
-      "url": "",
-      "telegram_post_url": "",
-      "source_chat_id": "",
-      "source_message_id": 0
-    }
-  ],
-  "tutorials": [
-    {
-      "title": "Waru Edition o'rnatish qo'llanmasi",
-      "description": "Tutorial video havolasini admin qo'shadi.",
-      "url": "",
-      "source_chat_id": "",
-      "source_message_id": 0
-    }
-  ],
+  "files": [],
+  "tutorials": [],
   "support_channel": "https://t.me/generalsmobile1",
   "support_group": "https://t.me/generalstelefon"
 }
