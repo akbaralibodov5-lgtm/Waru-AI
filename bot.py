@@ -33,7 +33,7 @@ ADMIN_IDS = {
 CATALOG_PATH = Path(os.getenv("CATALOG_PATH", "catalog.json"))
 DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or "@generalstelefon"
 DONATION_URL = "https://taps.uz/generalsmobile1"
-DONATION_INTERVAL_SECONDS = 5 * 60 * 60
+DONATION_INTERVAL_SECONDS = 2 * 60 * 60 + 30 * 60
 
 if not TELEGRAM_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN .env faylida ko'rsatilmagan.")
@@ -92,8 +92,20 @@ DONATION_TEXT = (
 )
 
 
+async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show the donation link when a user explicitly requests it."""
+    await temporary_reply(
+        update.effective_message,
+        DONATION_TEXT,
+        reply_markup=InlineKeyboardMarkup([[
+            InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
+        ]]),
+        disable_web_page_preview=True,
+    )
+
+
 async def donation_loop(application: Application):
-    """Post a persistent donation message to the configured group every five hours."""
+    """Post a persistent donation message to the configured group every 2.5 hours."""
     while True:
         await asyncio.sleep(DONATION_INTERVAL_SECONDS)
         try:
@@ -178,7 +190,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Generals Zero Hour, Android port, modlar, fayllar, yangilanishlar "
         "va tutoriallar bo'yicha yordam beraman.\n\n"
         "Buyruqlar:\n/latest — eng so'nggi versiya\n/files — fayllar\n"
-        "/tutorials — tutorial videolar\n/help — yordam\n/reset — AI suhbatini tozalash"
+        "/tutorials — tutorial videolar\n/donate — loyihani qo‘llab-quvvatlash\n/help — yordam\n/reset — AI suhbatini tozalash"
     )
     if is_admin(update.effective_user.id):
         text += "\n/adminhelp — admin buyruqlari"
@@ -608,6 +620,7 @@ def main():
     app.add_handler(CommandHandler("latest", latest))
     app.add_handler(CommandHandler("files", files_command))
     app.add_handler(CommandHandler("tutorials", tutorials_command))
+    app.add_handler(CommandHandler("donate", donate_command))
     app.add_handler(CommandHandler("reset", reset_command))
     app.add_handler(CommandHandler("adminhelp", adminhelp))
     app.add_handler(CommandHandler("analyze", analyze_command))
