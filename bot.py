@@ -93,9 +93,8 @@ DONATION_TEXT = (
 
 
 async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show the donation link when a user explicitly requests it."""
-    await temporary_reply(
-        update.effective_message,
+    """Show a persistent donation message when a user explicitly requests it."""
+    await update.effective_message.reply_text(
         DONATION_TEXT,
         reply_markup=InlineKeyboardMarkup([[
             InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
