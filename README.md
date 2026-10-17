@@ -105,6 +105,33 @@ The `/setversion` command writes to `catalog.json` on the running host. On ephem
 - `/tutorials`
 - `/reset`
 
+
+## 5. Send actual files and videos from your Telegram channel
+
+This bot can copy a channel post (including its attached APK/file/video) into the user's chat. The bot must be added to the source channel; use a channel username such as `@your_channel` or the numeric channel ID such as `-1001234567890`.
+
+In `catalog.json`, configure the latest release source:
+```json
+"source_chat_id": "@your_channel",
+"source_message_id": 123
+```
+
+Add `source_chat_id` and `source_message_id` to each object in `files` and `tutorials` in the same way. Use the message ID of the original channel post that contains the file or video. You can keep `url` and `telegram_post_url` too as fallback links.
+
+Example file entry:
+```json
+{
+  "name": "Waru Edition APK",
+  "description": "Latest Android release",
+  "url": "https://example.com/WaruEdition.apk",
+  "telegram_post_url": "https://t.me/your_channel/123",
+  "source_chat_id": "@your_channel",
+  "source_message_id": 123
+}
+```
+
+The bot will use Telegram's copy-message feature to send the original channel post contents to the requester. It does not remove or delete the channel post. If copying fails, check the channel ID, message ID, and that the bot has access to the source channel. For large files, Telegram Bot API file limits may apply.
+
 ## Security and limitations
 
 - Do not upload `.env`, Telegram tokens, OpenAI keys, or logs containing secrets.
