@@ -137,7 +137,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.effective_message.reply_text(
+    await temporary_reply(update.effective_message, 
         "Savolingizni yozing: mod o'rnatish, crash log, APK build yoki xaritalar.\n\n"
         "/latest — oxirgi versiya\n/files — yuklab olish fayllari\n"
         "/tutorials — video qo'llanmalar\n/reset — suhbatni tozalash"
@@ -157,7 +157,7 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
     has_channel_copy = bool(version.get("source_chat_id")) and str(version.get("source_message_id", "")).isdigit() and int(version.get("source_message_id", 0)) > 0
     if not version.get("download_url") and not version.get("telegram_post_url") and not has_channel_copy:
         lines.extend(["", "⚠️ Yuklab olish manbasi sozlanmagan. Admin catalog.json faylini to'ldirishi kerak."])
-    await update.effective_message.reply_text("\n".join(lines), reply_markup=catalog_keyboard())
+    await temporary_reply(update.effective_message, "\n".join(lines), reply_markup=catalog_keyboard())
     source_chat = version.get("source_chat_id")
     source_message = version.get("source_message_id")
     if source_chat and str(source_message).isdigit() and int(source_message) > 0:
@@ -169,7 +169,7 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         except Exception:
             log.exception("Latest release channel post could not be copied")
-            await update.effective_message.reply_text(
+            await temporary_reply(update.effective_message, 
                 "Kanal postidan fayl yuborilmadi. Bot kanalga qo'shilganini va source_chat_id/source_message_id to'g'ri ekanini tekshiring."
             )
 
@@ -177,7 +177,7 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     files = load_catalog().get("files", [])
     if not files:
-        await update.effective_message.reply_text(
+        await temporary_reply(update.effective_message, 
             "Hozircha fayllar katalogga qo'shilmagan. Admin catalog.json faylini to'ldirishi kerak."
         )
         return
@@ -192,7 +192,7 @@ async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if target.startswith(("https://", "http://")):
             label = "⬇️ Faylni olish" if target == url else "📣 Kanal postini ochish"
             markup = InlineKeyboardMarkup([[InlineKeyboardButton(label, url=target)]])
-        await update.effective_message.reply_text(text, reply_markup=markup)
+        await temporary_reply(update.effective_message, text, reply_markup=markup)
         source_chat = item.get("source_chat_id")
         source_message = item.get("source_message_id")
         if source_chat and str(source_message).isdigit() and int(source_message) > 0:
@@ -204,7 +204,7 @@ async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             except Exception:
                 log.exception("Catalog file post could not be copied")
-                await update.effective_message.reply_text(
+                await temporary_reply(update.effective_message, 
                     "Bu fayl kanalidan avtomatik yuborilmadi. Bot a'zoligi va fayl manzili sozlamalarini tekshiring."
                 )
 
@@ -212,7 +212,7 @@ async def files_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tutorials = load_catalog().get("tutorials", [])
     if not tutorials:
-        await update.effective_message.reply_text(
+        await temporary_reply(update.effective_message, 
             "Tutorial videolar hali qo'shilmagan. Admin catalog.json faylini to'ldirishi kerak."
         )
         return
@@ -224,7 +224,7 @@ async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         markup = None
         if url.startswith(("https://", "http://")):
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("▶️ Videoni ko'rish", url=url)]])
-        await update.effective_message.reply_text(text, reply_markup=markup)
+        await temporary_reply(update.effective_message, text, reply_markup=markup)
         source_chat = item.get("source_chat_id")
         source_message = item.get("source_message_id")
         if source_chat and str(source_message).isdigit() and int(source_message) > 0:
@@ -236,7 +236,7 @@ async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             except Exception:
                 log.exception("Tutorial channel post could not be copied")
-                await update.effective_message.reply_text(
+                await temporary_reply(update.effective_message, 
                     "Videoni kanaldan yuborib bo'lmadi. Bot kanal a'zoligi va source ma'lumotlarini tekshiring."
                 )
 
@@ -309,14 +309,14 @@ async def channel_post_handler(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     history.pop(update.effective_user.id, None)
-    await update.effective_message.reply_text("🔄 AI suhbat tarixi tozalandi.")
+    await temporary_reply(update.effective_message, "🔄 AI suhbat tarixi tozalandi.")
 
 
 async def adminhelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
-        await update.effective_message.reply_text("Bu buyruq faqat admin uchun.")
+        await temporary_reply(update.effective_message, "Bu buyruq faqat admin uchun.")
         return
-    await update.effective_message.reply_text(
+    await temporary_reply(update.effective_message, 
         "Admin buyruqlari:\n"
         "/setversion VERSIYA | YUKLASH_HAVOLASI | YANGILIKLAR\n"
         "/setchannel KANAL_HAVOLASI\n/setgroup GURUH_HAVOLASI\n"
@@ -326,18 +326,18 @@ async def adminhelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def setversion(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
-        await update.effective_message.reply_text("Faqat admin.")
+        await temporary_reply(update.effective_message, "Faqat admin.")
         return
     parts = [" ".join(context.args).strip()]
     parts = [part.strip() for part in parts[0].split("|", 2)]
     if len(parts) < 2 or not parts[0]:
-        await update.effective_message.reply_text(
+        await temporary_reply(update.effective_message, 
             "Foydalanish: /setversion 1.2.3 | https://example.com/file.apk | Tuzatishlar"
         )
         return
     url = parts[1]
     if url and not url.startswith(("https://", "http://")):
-        await update.effective_message.reply_text("Havola https:// bilan boshlanishi kerak.")
+        await temporary_reply(update.effective_message, "Havola https:// bilan boshlanishi kerak.")
         return
     catalog = load_catalog()
     catalog["version"]["latest_version"] = parts[0]
@@ -348,19 +348,19 @@ async def setversion(update: Update, context: ContextTypes.DEFAULT_TYPE):
         CATALOG_PATH.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         log.exception("Catalog yozilmadi")
-        await update.effective_message.reply_text("Saqlanmadi: server fayl yozish huquqini tekshiring.")
+        await temporary_reply(update.effective_message, "Saqlanmadi: server fayl yozish huquqini tekshiring.")
         return
-    await update.effective_message.reply_text("✅ Versiya ma'lumoti yangilandi.")
+    await temporary_reply(update.effective_message, "✅ Versiya ma'lumoti yangilandi.")
 
 
 
 async def setpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
-        await update.effective_message.reply_text("Faqat admin.")
+        await temporary_reply(update.effective_message, "Faqat admin.")
         return
     url = context.args[0].strip() if context.args else ""
     if not url.startswith(("https://t.me/", "https://telegram.me/")):
-        await update.effective_message.reply_text("Foydalanish: /setpost https://t.me/kanal/123")
+        await temporary_reply(update.effective_message, "Foydalanish: /setpost https://t.me/kanal/123")
         return
     catalog = load_catalog()
     catalog["version"]["telegram_post_url"] = url
@@ -368,22 +368,22 @@ async def setpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
         CATALOG_PATH.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         log.exception("Catalog yozilmadi")
-        await update.effective_message.reply_text("Saqlanmadi: server fayl yozish huquqini tekshiring.")
+        await temporary_reply(update.effective_message, "Saqlanmadi: server fayl yozish huquqini tekshiring.")
         return
-    await update.effective_message.reply_text("✅ Versiya uchun Telegram post havolasi saqlandi.")
+    await temporary_reply(update.effective_message, "✅ Versiya uchun Telegram post havolasi saqlandi.")
 
 async def set_link(update: Update, context: ContextTypes.DEFAULT_TYPE, key: str, label: str):
     if not is_admin(update.effective_user.id):
-        await update.effective_message.reply_text("Faqat admin.")
+        await temporary_reply(update.effective_message, "Faqat admin.")
         return
     url = context.args[0].strip() if context.args else ""
     if not url.startswith("https://t.me/"):
-        await update.effective_message.reply_text("Foydalanish: /" + label + " https://t.me/kanal_yoki_guruh")
+        await temporary_reply(update.effective_message, "Foydalanish: /" + label + " https://t.me/kanal_yoki_guruh")
         return
     catalog = load_catalog()
     catalog[key] = url
     CATALOG_PATH.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
-    await update.effective_message.reply_text("✅ Havola saqlandi.")
+    await temporary_reply(update.effective_message, "✅ Havola saqlandi.")
 
 
 async def setchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -403,7 +403,7 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not question:
         return
     if len(question) > 12000:
-        await message.reply_text("Xabar juda uzun. Iltimos, qisqartirib yuboring.")
+        await temporary_reply(message, "Xabar juda uzun. Iltimos, qisqartirib yuboring.")
         return
 
     query = question.casefold()
@@ -427,12 +427,12 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         answer = (response.output_text or "").strip() or "Javob olinmadi. Qayta urinib ko'ring."
         user_history.append({"role": "assistant", "content": answer})
         for offset in range(0, len(answer), 3900):
-            await message.reply_text(answer[offset:offset + 3900])
+            await temporary_reply(message, answer[offset:offset + 3900])
     except Exception:
         log.exception("OpenAI so'rovi bajarilmadi")
         if user_history and user_history[-1]["role"] == "user":
             user_history.pop()
-        await message.reply_text("⚠️ AI javob bera olmadi. API kaliti, billing, model va internetni tekshiring.")
+        await temporary_reply(message, "⚠️ AI javob bera olmadi. API kaliti, billing, model va internetni tekshiring.")
 
 
 def main():
