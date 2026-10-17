@@ -66,7 +66,7 @@ DEFAULT_CATALOG = {
 }
 
 
-async def delete_message_after_delay(sent_message, delay: int = 10):
+async def delete_message_after_delay(sent_message, delay: int = 25):
     """Delete the bot's text reply after a short delay; media copies are not passed here."""
     await asyncio.sleep(delay)
     try:
@@ -78,7 +78,7 @@ async def delete_message_after_delay(sent_message, delay: int = 10):
 async def temporary_reply(message, text, **kwargs):
     """Send a text reply and remove it after 10 seconds."""
     sent = await message.reply_text(text, **kwargs)
-    asyncio.create_task(delete_message_after_delay(sent, 10))
+    asyncio.create_task(delete_message_after_delay(sent, 25))
     return sent
 
 
