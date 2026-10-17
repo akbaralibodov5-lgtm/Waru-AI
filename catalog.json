@@ -5,21 +5,27 @@
     "release_notes": "Admin hali versiya ma'lumotlarini sozlamagan.",
     "download_url": "",
     "telegram_post_url": "",
-    "updated_at": ""
+    "updated_at": "",
+    "source_chat_id": "",
+    "source_message_id": 0
   },
   "files": [
     {
       "name": "Waru Edition APK",
       "description": "Haqiqiy fayl havolasini admin qo'shadi.",
       "url": "",
-      "telegram_post_url": ""
+      "telegram_post_url": "",
+      "source_chat_id": "",
+      "source_message_id": 0
     }
   ],
   "tutorials": [
     {
       "title": "Waru Edition o'rnatish qo'llanmasi",
       "description": "Tutorial video havolasini admin qo'shadi.",
-      "url": ""
+      "url": "",
+      "source_chat_id": "",
+      "source_message_id": 0
     }
   ],
   "support_channel": "",
