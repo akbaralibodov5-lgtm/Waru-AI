@@ -137,8 +137,9 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lines.append("🗓 Yangilangan sana: " + str(version["updated_at"]))
     if version.get("release_notes"):
         lines.extend(["", "ℹ️ " + str(version["release_notes"])])
-    if not version.get("download_url") and not version.get("telegram_post_url"):
-        lines.extend(["", "⚠️ Yuklab olish havolasi sozlanmagan. Admin catalog.json faylini to'ldirishi kerak."])
+    has_channel_copy = bool(version.get("source_chat_id")) and str(version.get("source_message_id", "")).isdigit() and int(version.get("source_message_id", 0)) > 0
+    if not version.get("download_url") and not version.get("telegram_post_url") and not has_channel_copy:
+        lines.extend(["", "⚠️ Yuklab olish manbasi sozlanmagan. Admin catalog.json faylini to'ldirishi kerak."])
     await update.effective_message.reply_text("\n".join(lines), reply_markup=catalog_keyboard())
     source_chat = version.get("source_chat_id")
     source_message = version.get("source_message_id")
