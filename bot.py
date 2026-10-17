@@ -201,7 +201,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await temporary_reply(update.effective_message, 
         "Savolingizni yozing: mod o'rnatish, crash log, APK build yoki xaritalar.\n\n"
         "/latest — oxirgi versiya\n/files — yuklab olish fayllari\n"
-        "/tutorials — video qo'llanmalar\n/reset — suhbatni tozalash"
+        "/tutorials — video qo'llanmalar\n/donate — loyihani qo'llab-quvvatlash\n/reset — suhbatni tozalash"
     )
 
 
