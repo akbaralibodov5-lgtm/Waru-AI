@@ -8,6 +8,7 @@ from pathlib import Path
 import zipfile
 from collections import defaultdict, deque
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -104,9 +105,14 @@ async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def donation_loop(application: Application):
-    """Post a persistent donation message to the configured group every 2.5 hours."""
+    """Post every 2.5 hours, only between 07:00 and 23:59 Tashkent time."""
+    tashkent_tz = ZoneInfo("Asia/Tashkent")
     while True:
         await asyncio.sleep(DONATION_INTERVAL_SECONDS)
+        local_now = datetime.now(tashkent_tz)
+        if local_now.hour < 7 or local_now.hour >= 24:
+            log.info("Skipping scheduled donation during quiet hours in Tashkent: %s", local_now.isoformat())
+            continue
         try:
             await application.bot.send_message(
                 chat_id=DONATION_CHAT_ID,
