@@ -407,6 +407,16 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     query = question.casefold()
+    # Requests for Generals APK should return both download posts and the tutorial.
+    if any(term in query for term in (
+        "generals apk", "generals zero hour apk", "apk va zip", "apk zip",
+        "apkni ber", "apk ber", "generals fayl", "zero hour apk",
+        "generalsni yuklab", "o'yinni yuklab"
+    )):
+        await files_command(update, context)
+        await tutorials_command(update, context)
+        return
+
     if any(term in query for term in ("eng oxirgi versiya", "oxirgi versiya", "latest version", "последняя версия", "последнюю версию")):
         await latest(update, context)
         return
