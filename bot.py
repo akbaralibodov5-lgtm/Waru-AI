@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -65,6 +66,22 @@ DEFAULT_CATALOG = {
 }
 
 
+async def delete_message_after_delay(sent_message, delay: int = 10):
+    """Delete the bot's text reply after a short delay; media copies are not passed here."""
+    await asyncio.sleep(delay)
+    try:
+        await sent_message.delete()
+    except Exception:
+        log.debug("Temporary bot message could not be deleted", exc_info=True)
+
+
+async def temporary_reply(message, text, **kwargs):
+    """Send a text reply and remove it after 10 seconds."""
+    sent = await temporary_reply(message, text, **kwargs)
+    asyncio.create_task(delete_message_after_delay(sent, 10))
+    return sent
+
+
 def load_catalog():
     try:
         with CATALOG_PATH.open("r", encoding="utf-8") as file:
@@ -116,7 +133,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     if is_admin(update.effective_user.id):
         text += "\n/adminhelp — admin buyruqlari"
-    await update.effective_message.reply_text(text, reply_markup=catalog_keyboard())
+    await temporary_reply(update.effective_message, text, reply_markup=catalog_keyboard())
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
