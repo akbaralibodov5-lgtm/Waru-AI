@@ -1,16 +1,41 @@
 {
   "version": {
-    "name": "Waru Edition",
-    "latest_version": "Hali sozlanmagan",
-    "release_notes": "Yangi versiya postini kanalga joylang; bot kanalga ulangan bo'lsa uni indekslaydi.",
-    "download_url": "",
-    "telegram_post_url": "",
+    "name": "Waru Edition / Generals Zero Hour",
+    "latest_version": "APK post #166",
+    "release_notes": "APK, ZIP va tutorial havolalari tayyor.",
+    "download_url": "https://t.me/generalsmobile1/166",
+    "telegram_post_url": "https://t.me/generalsmobile1/166",
     "updated_at": "",
-    "source_chat_id": "",
-    "source_message_id": 0
+    "source_chat_id": "@generalsmobile1",
+    "source_message_id": 166
   },
-  "files": [],
-  "tutorials": [],
+  "files": [
+    {
+      "name": "Generals Zero Hour APK",
+      "description": "APK fayli — Telegram kanalidagi asl post.",
+      "url": "https://t.me/generalsmobile1/166",
+      "telegram_post_url": "https://t.me/generalsmobile1/166",
+      "source_chat_id": "@generalsmobile1",
+      "source_message_id": 166
+    },
+    {
+      "name": "Generals Zero Hour ZIP",
+      "description": "ZIP arxiv — Telegram kanalidagi asl post.",
+      "url": "https://t.me/generalsmobile1/74",
+      "telegram_post_url": "https://t.me/generalsmobile1/74",
+      "source_chat_id": "@generalsmobile1",
+      "source_message_id": 74
+    }
+  ],
+  "tutorials": [
+    {
+      "title": "Generals Zero Hour tutorial",
+      "description": "O'rnatish bo'yicha tutorial — Telegram kanalidagi asl post.",
+      "url": "https://t.me/generalsmobile1/150",
+      "source_chat_id": "@generalsmobile1",
+      "source_message_id": 150
+    }
+  ],
   "support_channel": "https://t.me/generalsmobile1",
   "support_group": "https://t.me/generalstelefon"
 }
