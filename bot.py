@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
+import qrcode
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, ContextTypes, filters
 )
@@ -34,6 +35,7 @@ ADMIN_IDS = {
 CATALOG_PATH = Path(os.getenv("CATALOG_PATH", "catalog.json"))
 DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or "@generalstelefon"
 DONATION_URL = "https://taps.uz/generalsmobile1"
+CLICK_QR_URL = "https://indoor.click.uz/pay?id=0113851&t=0"
 DONATION_INTERVAL_SECONDS = 2 * 60 * 60 + 30 * 60
 
 if not TELEGRAM_TOKEN:
@@ -93,14 +95,25 @@ DONATION_TEXT = (
 )
 
 
+def make_click_qr():
+    """Generate a scannable QR for the Click payment link shown in the user's image."""
+    image = qrcode.make(CLICK_QR_URL)
+    stream = io.BytesIO()
+    stream.name = "click-pay-qr.png"
+    image.save(stream, format="PNG")
+    stream.seek(0)
+    return stream
+
+
 async def send_donation_message(bot, chat_id):
     """Send a persistent donation message with the Click QR image."""
     await bot.send_photo(
         chat_id=chat_id,
-        photo=Path(os.getenv("DONATION_QR_PATH", "assets/click-pay-qr.jpg")),
+        photo=make_click_qr(),
         caption=DONATION_TEXT,
         reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("❤️ Loyihani qo‘llab-quvvatlash (UZS)", url=DONATION_URL)
+            InlineKeyboardButton("❤️ Click orqali to‘lash", url=CLICK_QR_URL),
+            InlineKeyboardButton("UZS donat sahifasi", url=DONATION_URL)
         ]]),
     )
 
