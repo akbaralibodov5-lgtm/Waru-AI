@@ -224,6 +224,72 @@ async def tutorials_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
 
 
+async def channel_post_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Index new APK/archive files and videos posted in the configured public channel."""
+    post = update.channel_post
+    if not post:
+        return
+
+    expected_username = os.getenv("SOURCE_CHANNEL_USERNAME", "generalsmobile1").lstrip("@").lower()
+    actual_username = (post.chat.username or "").lower()
+    if expected_username and actual_username != expected_username:
+        return
+
+    catalog = load_catalog()
+    source_chat_id = post.chat.id
+    source_message_id = post.message_id
+    caption = (post.caption or post.text or "").strip()
+    description = caption[:500] if caption else "Telegram kanalidan avtomatik qo'shildi."
+    added = False
+
+    # Telegram video posts become tutorial entries; documents/archives/APKs become files.
+    if post.video or post.animation:
+        tutorials = catalog.setdefault("tutorials", [])
+        if not any(
+            str(item.get("source_chat_id")) == str(source_chat_id)
+            and str(item.get("source_message_id")) == str(source_message_id)
+            for item in tutorials
+        ):
+            tutorials.insert(0, {
+                "title": caption[:100] if caption else f"Generals Mobile video #{source_message_id}",
+                "description": description,
+                "url": "",
+                "source_chat_id": source_chat_id,
+                "source_message_id": source_message_id,
+            })
+            del tutorials[100:]
+            added = True
+    elif post.document or post.audio:
+        files = catalog.setdefault("files", [])
+        if not any(
+            str(item.get("source_chat_id")) == str(source_chat_id)
+            and str(item.get("source_message_id")) == str(source_message_id)
+            for item in files
+        ):
+            media = post.document or post.audio
+            file_name = getattr(media, "file_name", None)
+            files.insert(0, {
+                "name": file_name or (caption[:100] if caption else f"Generals Mobile file #{source_message_id}"),
+                "description": description,
+                "url": "",
+                "telegram_post_url": f"https://t.me/{actual_username}/{source_message_id}",
+                "source_chat_id": source_chat_id,
+                "source_message_id": source_message_id,
+            })
+            del files[100:]
+            added = True
+    else:
+        return
+
+    if added:
+        try:
+            CATALOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+            CATALOG_PATH.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
+            log.info("Indexed channel post %s from @%s", source_message_id, actual_username)
+        except Exception:
+            log.exception("Could not save channel post to catalog")
+
+
 async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     history.pop(update.effective_user.id, None)
     await update.effective_message.reply_text("🔄 AI suhbat tarixi tozalandi.")
@@ -365,6 +431,7 @@ def main():
     app.add_handler(CommandHandler("setpost", setpost))
     app.add_handler(CommandHandler("setchannel", setchannel))
     app.add_handler(CommandHandler("setgroup", setgroup))
+    app.add_handler(MessageHandler(filters.UpdateType.CHANNEL_POST, channel_post_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, answer_message))
     print("Waru Edition AI Assistant ishga tushdi.")
     app.run_polling()
