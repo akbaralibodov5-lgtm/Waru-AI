@@ -628,10 +628,15 @@ async def group_link_guard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        await context.bot.send_message(
+        warning = await context.bot.send_message(
             chat_id=chat.id,
             text=f"⚠️ {user.mention_html()} reklama tarqatmang! Guruhda havola yuborish faqat adminlar va guruh egasiga ruxsat etilgan.",
             parse_mode="HTML",
+        )
+        # Keep the group tidy: remove the moderation warning after 25 seconds.
+        context.application.create_task(
+            delete_message_after_delay(context.bot, chat.id, warning.message_id, 25),
+            name="delete-ad-warning",
         )
     except Exception:
         log.exception("Could not send anti-ad warning in %s", chat.id)
