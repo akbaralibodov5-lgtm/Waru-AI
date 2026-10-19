@@ -710,7 +710,7 @@ def main():
     app.add_handler(CommandHandler("adminhelp", adminhelp))
     app.add_handler(CommandHandler("analyze", analyze_command))
     # Run before ordinary handlers so unauthorized links are deleted first.
-    app.add_handler(MessageHandler(filters.ChatType.GROUPS & (filters.TEXT | filters.CAPTION | filters.Entity("url") | filters.Entity("text_link")), group_link_guard))
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & (filters.TEXT | filters.CAPTION | filters.Entity("url") | filters.Entity("text_link")), group_link_guard), group=-1)
     app.add_handler(MessageHandler(filters.Document.ALL | filters.VIDEO | filters.ANIMATION | filters.AUDIO | filters.VOICE, admin_media_handler))
     app.add_handler(CommandHandler("setversion", setversion))
     app.add_handler(CommandHandler("setpost", setpost))
