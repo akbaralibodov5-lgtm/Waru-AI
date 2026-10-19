@@ -614,7 +614,7 @@ async def group_link_guard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     text_to_check = "\n".join(part for part in (message.text, message.caption) if part)
     has_link_pattern = bool(re.search(
-        r"(https?://|www\\.|t\\.me/|telegram\\.me/|wa\\.me/|bit\\.ly/|tinyurl\\.com/)",
+        r"(https?://|www\.|t\.me/|telegram\.me/|wa\.me/|bit\.ly/|tinyurl\.com/)",
         text_to_check,
         flags=re.IGNORECASE,
     ))
