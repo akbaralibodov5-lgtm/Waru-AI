@@ -598,6 +598,15 @@ async def group_link_guard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not message or not chat or not user or chat.type not in ("group", "supergroup"):
         return
 
+    # Preserve posts automatically forwarded from the channel linked to this discussion group.
+    # Telegram marks these with is_automatic_forward; sender_chat is a second safe signal.
+    if getattr(message, "is_automatic_forward", False):
+        log.info("Skipping link moderation for an automatic channel forward in group %s", chat.id)
+        return
+    if message.sender_chat and message.sender_chat.id != chat.id:
+        log.info("Skipping link moderation for a message sent on behalf of channel/chat %s in group %s", message.sender_chat.id, chat.id)
+        return
+
     # Group owners and administrators are allowed to post links.
     try:
         member = await context.bot.get_chat_member(chat.id, user.id)
