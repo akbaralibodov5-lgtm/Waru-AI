@@ -664,7 +664,11 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     query = question.casefold()
-    # Respond only to clear requests about Generals downloads/tutorials or explicit bot help.
+    # Match whole APK/ZIP keywords so every group member can request files
+    # by typing "apk" or "zip" alone.
+    normalized = re.sub(r"[^\w]+", " ", query, flags=re.UNICODE).strip()
+    words = set(normalized.split())
+
     download_terms = (
         "generals apk", "generals zero hour apk", "apk va zip", "apk zip",
         "apkni ber", "apk ber", "generals fayl", "zero hour apk",
@@ -673,7 +677,7 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     file_terms = (
         "faylni ber", "fayllarni ber", "yuklab olish", "download file",
-        "скачать файл", "файлни", "apk", "zip fayl", "zipni ber"
+        "скачать файл", "файлни", "zip fayl", "zipni ber"
     )
     tutorial_terms = (
         "tutorial video", "tutorial vide", "video qo'llanma", "видео урок",
@@ -685,25 +689,22 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     help_terms = ("/help", "yordam buyruqlari", "nima qila olasan", "bot yordam")
 
+    # Anyone in the group can request the files using a short keyword.
+    if words.intersection({"apk", "zip"}) or any(term in query for term in file_terms) or any(term in query for term in download_terms):
+        await files_command(update, context)
+        await tutorials_command(update, context)
+        return
     if any(term in query for term in version_terms):
         await latest(update, context)
         return
     if any(term in query for term in tutorial_terms):
         await tutorials_command(update, context)
         return
-    if any(term in query for term in file_terms) or any(term in query for term in download_terms):
-        await files_command(update, context)
-        await tutorials_command(update, context)
-        return
     if any(term in query for term in help_terms):
         await help_command(update, context)
         return
 
-    # Ignore ordinary conversation so the bot stays quiet in group chats.
-    if message.chat.type in ("group", "supergroup"):
-        return
-
-    # In private chat, also ignore ordinary conversation; commands still work.
+    # Keep ordinary conversation quiet in groups and private chats.
     return
 
 
