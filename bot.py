@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import os
+import re
 from pathlib import Path
 import zipfile
 from collections import defaultdict, deque
@@ -589,6 +590,53 @@ async def setgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await set_link(update, context, "support_group", "setgroup")
 
 
+async def group_link_guard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Delete links from non-admin members in groups and warn them."""
+    message = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
+    if not message or not chat or not user or chat.type not in ("group", "supergroup"):
+        return
+
+    # Group owners and administrators are allowed to post links.
+    try:
+        member = await context.bot.get_chat_member(chat.id, user.id)
+        if member.status in ("creator", "administrator"):
+            return
+    except Exception:
+        log.exception("Could not verify group member permissions in %s", chat.id)
+        # Fail closed for messages containing links if admin status cannot be verified.
+
+    entities = list(message.entities or []) + list(message.caption_entities or [])
+    has_link_entity = any(
+        entity.type in ("url", "text_link")
+        for entity in entities
+    )
+    text_to_check = "\n".join(part for part in (message.text, message.caption) if part)
+    has_link_pattern = bool(re.search(
+        r"(https?://|www\\.|t\\.me/|telegram\\.me/|wa\\.me/|bit\\.ly/|tinyurl\\.com/)",
+        text_to_check,
+        flags=re.IGNORECASE,
+    ))
+    if not (has_link_entity or has_link_pattern):
+        return
+
+    try:
+        await message.delete()
+    except Exception:
+        log.exception("Could not delete a non-admin link message in %s", chat.id)
+        return
+
+    try:
+        await context.bot.send_message(
+            chat_id=chat.id,
+            text=f"⚠️ {user.mention_html()} reklama tarqatmang! Guruhda havola yuborish faqat adminlar va guruh egasiga ruxsat etilgan.",
+            parse_mode="HTML",
+        )
+    except Exception:
+        log.exception("Could not send anti-ad warning in %s", chat.id)
+
+
 async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.effective_message
     user = update.effective_user
@@ -656,6 +704,8 @@ def main():
     app.add_handler(CommandHandler("reset", reset_command))
     app.add_handler(CommandHandler("adminhelp", adminhelp))
     app.add_handler(CommandHandler("analyze", analyze_command))
+    # Run before ordinary handlers so unauthorized links are deleted first.
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & (filters.TEXT | filters.CAPTION | filters.Entity("url") | filters.Entity("text_link")), group_link_guard))
     app.add_handler(MessageHandler(filters.Document.ALL | filters.VIDEO | filters.ANIMATION | filters.AUDIO | filters.VOICE, admin_media_handler))
     app.add_handler(CommandHandler("setversion", setversion))
     app.add_handler(CommandHandler("setpost", setpost))
