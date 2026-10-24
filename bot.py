@@ -139,31 +139,29 @@ async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def donation_loop(application: Application):
-    """Post at most once per day, only between 07:00 and 23:59 Tashkent time."""
+    """Send the scheduled donation post once daily at exactly 12:00 Asia/Tashkent."""
     tashkent_tz = ZoneInfo("Asia/Tashkent")
     last_post_date = None
     while True:
         local_now = datetime.now(tashkent_tz)
-        if local_now.hour < 7:
-            # Wait until 07:00 Tashkent time before checking today's post.
-            seconds_until_seven = (
-                (7 - local_now.hour) * 60 * 60
-                - local_now.minute * 60
-                - local_now.second
-            )
-            await asyncio.sleep(max(1, seconds_until_seven))
-            continue
+        # Compute the next local noon; if today's noon has passed, wait for tomorrow.
+        next_noon = local_now.replace(hour=12, minute=0, second=0, microsecond=0)
+        if local_now >= next_noon:
+            from datetime import timedelta
+            next_noon = next_noon + timedelta(days=1)
 
-        if local_now.date() != last_post_date and local_now.hour < 24:
+        wait_seconds = max(1, (next_noon - local_now).total_seconds())
+        log.info("Next scheduled donation check at %s", next_noon.isoformat())
+        await asyncio.sleep(wait_seconds)
+
+        local_now = datetime.now(tashkent_tz)
+        if local_now.hour == 12 and local_now.minute == 0 and local_now.date() != last_post_date:
             try:
                 await send_donation_message(application.bot, DONATION_CHAT_ID)
                 last_post_date = local_now.date()
-                log.info("Daily donation message posted to %s for %s", DONATION_CHAT_ID, last_post_date)
+                log.info("Daily donation message posted to %s for %s at 12:00 Tashkent time", DONATION_CHAT_ID, last_post_date)
             except Exception:
                 log.exception("Scheduled donation message failed for %s", DONATION_CHAT_ID)
-
-        # Check periodically; date guard prevents more than one scheduled post per day.
-        await asyncio.sleep(15 * 60)
 
 
 async def post_init(application: Application):
