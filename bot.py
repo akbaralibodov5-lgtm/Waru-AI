@@ -38,7 +38,6 @@ DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or 
 DONATION_URL = "https://taps.uz/generalsmobile1"
 INTERNATIONAL_DONATION_URL = "https://dalink.to/waru_edition"
 CLICK_QR_URL = "https://indoor.click.uz/pay?id=0113851&t=0"
-DONATION_INTERVAL_SECONDS = 24 * 60 * 60
 
 if not TELEGRAM_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN .env faylida ko'rsatilmagan.")
@@ -168,6 +167,8 @@ async def donation_loop(application: Application):
 
 
 async def post_init(application: Application):
+    # Log the active scheduler implementation so Railway logs can confirm the deployed code.
+    log.info("Donation scheduler active: at most once per Tashkent calendar day, after 07:00.")
     # Use a dedicated send_message task, not temporary_reply, so this post is never auto-deleted.
     application.create_task(donation_loop(application), name="waru-donation-loop")
 
