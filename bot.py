@@ -38,7 +38,7 @@ DONATION_CHAT_ID = os.getenv("DONATION_CHAT_ID", "@generalstelefon").strip() or 
 DONATION_URL = "https://taps.uz/generalsmobile1"
 INTERNATIONAL_DONATION_URL = "https://dalink.to/waru_edition"
 CLICK_QR_URL = "https://indoor.click.uz/pay?id=0113851&t=0"
-DONATION_INTERVAL_SECONDS = 2 * 60 * 60 + 30 * 60
+DONATION_INTERVAL_SECONDS = 24 * 60 * 60
 
 if not TELEGRAM_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN .env faylida ko'rsatilmagan.")
@@ -140,19 +140,31 @@ async def donate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def donation_loop(application: Application):
-    """Post every 2.5 hours, only between 07:00 and 23:59 Tashkent time."""
+    """Post at most once per day, only between 07:00 and 23:59 Tashkent time."""
     tashkent_tz = ZoneInfo("Asia/Tashkent")
+    last_post_date = None
     while True:
-        await asyncio.sleep(DONATION_INTERVAL_SECONDS)
         local_now = datetime.now(tashkent_tz)
-        if local_now.hour < 7 or local_now.hour >= 24:
-            log.info("Skipping scheduled donation during quiet hours in Tashkent: %s", local_now.isoformat())
+        if local_now.hour < 7:
+            # Wait until 07:00 Tashkent time before checking today's post.
+            seconds_until_seven = (
+                (7 - local_now.hour) * 60 * 60
+                - local_now.minute * 60
+                - local_now.second
+            )
+            await asyncio.sleep(max(1, seconds_until_seven))
             continue
-        try:
-            await send_donation_message(application.bot, DONATION_CHAT_ID)
-            log.info("Scheduled donation message posted to %s", DONATION_CHAT_ID)
-        except Exception:
-            log.exception("Scheduled donation message failed for %s", DONATION_CHAT_ID)
+
+        if local_now.date() != last_post_date and local_now.hour < 24:
+            try:
+                await send_donation_message(application.bot, DONATION_CHAT_ID)
+                last_post_date = local_now.date()
+                log.info("Daily donation message posted to %s for %s", DONATION_CHAT_ID, last_post_date)
+            except Exception:
+                log.exception("Scheduled donation message failed for %s", DONATION_CHAT_ID)
+
+        # Check periodically; date guard prevents more than one scheduled post per day.
+        await asyncio.sleep(15 * 60)
 
 
 async def post_init(application: Application):
