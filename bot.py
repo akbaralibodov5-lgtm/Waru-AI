@@ -700,13 +700,42 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     help_terms = ("/help", "yordam buyruqlari", "nima qila olasan", "bot yordam")
 
-    # APK keyword should return the website download link, not send APK media.
+    # APK keyword returns the website link, plus the ZIP archive and tutorial.
+    # Do not send the APK file itself.
     if "apk" in words:
         await temporary_reply(
             message,
             "⬇️ APK yuklab olish: https://waruevil.uz",
             disable_web_page_preview=True,
         )
+
+        catalog = load_catalog()
+        zip_item = next(
+            (item for item in catalog.get("files", [])
+             if "zip" in str(item.get("name", "")).casefold()),
+            None,
+        )
+        if zip_item:
+            source_chat = zip_item.get("source_chat_id")
+            source_message = zip_item.get("source_message_id")
+            if source_chat and str(source_message).isdigit() and int(source_message) > 0:
+                try:
+                    await context.bot.copy_message(
+                        chat_id=update.effective_chat.id,
+                        from_chat_id=source_chat,
+                        message_id=int(source_message),
+                    )
+                except Exception:
+                    log.exception("ZIP channel post could not be copied")
+                    zip_url = str(zip_item.get("url") or zip_item.get("telegram_post_url") or "").strip()
+                    if zip_url.startswith(("https://", "http://")):
+                        await temporary_reply(message, "📦 ZIP yuklab olish: " + zip_url, disable_web_page_preview=True)
+            else:
+                zip_url = str(zip_item.get("url") or zip_item.get("telegram_post_url") or "").strip()
+                if zip_url.startswith(("https://", "http://")):
+                    await temporary_reply(message, "📦 ZIP yuklab olish: " + zip_url, disable_web_page_preview=True)
+
+        await tutorials_command(update, context)
         return
 
     # ZIP requests keep using the existing file catalog.
