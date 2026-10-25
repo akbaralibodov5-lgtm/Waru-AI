@@ -700,8 +700,17 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     help_terms = ("/help", "yordam buyruqlari", "nima qila olasan", "bot yordam")
 
-    # Anyone in the group can request the files using a short keyword.
-    if words.intersection({"apk", "zip"}) or any(term in query for term in file_terms) or any(term in query for term in download_terms):
+    # APK keyword should return the website download link, not send APK media.
+    if "apk" in words:
+        await temporary_reply(
+            message,
+            "⬇️ APK yuklab olish: https://waruevil.uz",
+            disable_web_page_preview=True,
+        )
+        return
+
+    # ZIP requests keep using the existing file catalog.
+    if "zip" in words or any(term in query for term in file_terms) or any(term in query for term in download_terms):
         await files_command(update, context)
         await tutorials_command(update, context)
         return
