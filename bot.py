@@ -703,8 +703,8 @@ async def answer_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # APK keyword returns the website link, plus the ZIP archive and tutorial.
     # Do not send the APK file itself.
     if "apk" in words:
-        await temporary_reply(
-            message,
+        # Keep the website download link permanently; do not use temporary_reply here.
+        await message.reply_text(
             "⬇️ APK yuklab olish: https://waruevil.uz",
             disable_web_page_preview=True,
         )
