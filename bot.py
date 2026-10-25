@@ -165,9 +165,9 @@ async def donation_loop(application: Application):
 
 
 async def post_init(application: Application):
-    # Log the active scheduler implementation so Railway logs can confirm the deployed code.
-    log.info("Donation scheduler active: at most once per Tashkent calendar day, after 07:00.")
-    # Use a dedicated send_message task, not temporary_reply, so this post is never auto-deleted.
+    # The only automatic donation schedule is daily at 12:00 Asia/Tashkent.
+    # There is deliberately no 2.5-hour interval scheduler.
+    log.warning("DONATION SCHEDULE: DAILY AT 12:00 ASIA/TASHKENT ONLY; 2.5-HOUR SCHEDULE DISABLED.")
     application.create_task(donation_loop(application), name="waru-donation-loop")
 
 
