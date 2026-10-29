@@ -10,6 +10,7 @@ import zipfile
 from collections import defaultdict, deque
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -634,12 +635,49 @@ async def group_link_guard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     text_to_check = "\n".join(part for part in (message.text, message.caption) if part)
     has_link_pattern = bool(re.search(
-        r"(https?://|www\.|t\.me/|telegram\.me/|wa\.me/|bit\.ly/|tinyurl\.com/)",
+        r"(https?://|www\.|t\.me/|telegram\.me/|wa\.me/|bit\.ly/|tinyurl\.com/|youtu\.be/|youtube\.com/)",
         text_to_check,
         flags=re.IGNORECASE,
     ))
     if not (has_link_entity or has_link_pattern):
         return
+
+    # Allow messages whose links are all official YouTube video links.
+    # If a message also contains any non-YouTube link, normal anti-ad rules apply.
+    found_urls = []
+    for entity in entities:
+        if entity.type == "text_link" and getattr(entity, "url", None):
+            found_urls.append(entity.url)
+        elif entity.type == "url":
+            start_offset = entity.offset
+            end_offset = start_offset + entity.length
+            source_text = message.text or message.caption or ""
+            found_urls.append(source_text[start_offset:end_offset])
+    if not found_urls:
+        found_urls = re.findall(
+            r"(?:https?://|www\.)?[^\s<>]+",
+            text_to_check,
+            flags=re.IGNORECASE,
+        )
+        found_urls = [
+            value for value in found_urls
+            if re.search(r"(youtube\.com|youtu\.be)", value, flags=re.IGNORECASE)
+            or re.match(r"(?:https?://|www\.|t\.me/|telegram\.me/|wa\.me/|bit\.ly/|tinyurl\.com/)", value, flags=re.IGNORECASE)
+        ]
+
+    if found_urls:
+        def is_youtube_url(value):
+            candidate = value.strip().rstrip(".,!?)]}")
+            if candidate.startswith("www."):
+                candidate = "https://" + candidate
+            elif not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", candidate):
+                candidate = "https://" + candidate
+            host = (urlparse(candidate).hostname or "").lower()
+            return host == "youtu.be" or host == "youtube.com" or host.endswith(".youtube.com")
+
+        if all(is_youtube_url(value) for value in found_urls):
+            log.info("Allowing YouTube-only link message in group %s", chat.id)
+            return
 
     try:
         await message.delete()
